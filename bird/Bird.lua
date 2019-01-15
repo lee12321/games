@@ -1,7 +1,7 @@
 Bird = Class{}
 
 GRAVITY = 10
-JUMP_SPEED = -5
+JUMP_SPEED = -3
 
 function Bird:init()
     self.image = love.graphics.newImage('bird.png')
