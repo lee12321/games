@@ -17,11 +17,16 @@ function StateMachine:change(stateName, enterParams)
     self.current:exit()
     if stateName == 'pause' and self.current.stateName == 'play' then
         self.pausedGame = self.current
-        self.current = self.states[stateName](stateName)
-    elseif self.current.stateName == 'pause' and stateName =='play' then
-        self.current = self.pausedGame
+        self.current = self.states[stateName]()
+    elseif self.current.stateName == 'count' and stateName =='play' then
+        if next(self.pausedGame) == nil then
+            self.current = self.states[stateName]()
+        else
+            self.current = self.pausedGame
+            self.pausedGame = {}
+        end
     else
-        self.current = self.states[stateName](stateName)
+        self.current = self.states[stateName]()
     end
     self.current:enter(enterParams)
 end

@@ -11,6 +11,6 @@ end
 
 function TitleScreenState:update(dt)
     if love.keyboard.wasKeyPressed('space') then
-        gStateMachine:change('play')
+        gStateMachine:change('count')
     end
 end

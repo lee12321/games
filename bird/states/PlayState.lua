@@ -1,17 +1,21 @@
 PlayState = Class{__includes = BaseState}
 
+PipeInterval = math.random() + 2
+
 function PlayState:init()
     self.stateName = 'play'
     self.bird = Bird()
     self.pipePairs = {}
     self.pipeTimer = 0
-    self.lastPipeY = -PIPE_HEIGHT + math.random(80) + 20 -- y-axis of the top pipe
+    self.lastPipeY = -PIPE_HEIGHT + math.random(80) + 30 -- y-axis of the top pipe
+    self.score = 0
 end
 
 function PlayState:update(dt)
     self.pipeTimer = self.pipeTimer + dt
 
-    if self.pipeTimer > 2 then
+    if self.pipeTimer > PipeInterval then
+        PipeInterval = math.random() + 2
         y = math.max(-PIPE_HEIGHT + 20, -- not higher than this position
                 math.min( --get higher one 
                 self.lastPipeY + math.random(-20, 20), -- last pipe position +- 20
@@ -27,17 +31,27 @@ function PlayState:update(dt)
 
     if self.bird:collides() then
         -- detect if bird collides top or bottom
-        gStateMachine:change('title')
+        gStateMachine:change('score', self.score)
     end
 
     -- update pipe, detect collision
     for k, pipePair in pairs(self.pipePairs) do
         pipePair:update(dt)
         for i, pipe in pairs(pipePair.pipes) do
+            -- detect collission
             if pipe:collides(self.bird) then
-                gStateMachine:change('title')
-            end 
+                gStateMachine:change('score', self.score)
+            end
         end
+        -- if pass collission check then scores
+        if pipePair.scored == false then
+            if self.bird.x > pipePair.x + PIPE_WIDTH then
+                sounds['score']:play()
+                pipePair.scored = true
+                self.score = self.score + 1
+            end
+        end
+            
     end
 
     if love.keyboard.wasKeyPressed('up') then

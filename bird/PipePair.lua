@@ -1,8 +1,9 @@
 PipePair = Class{}
 
-GAP_HEIGHT = 90
+GAP_HEIGHT = math.random(70, 110)
 
 function PipePair:init(y)
+    GAP_HEIGHT = math.random(70, 110)
     self.x = GAME_WIDTH
     self.y = y -- top pipe's y-axis
     self.pipes = {
@@ -10,6 +11,7 @@ function PipePair:init(y)
         ['bottom'] = Pipe('bottom', self.y + PIPE_HEIGHT + GAP_HEIGHT)
     }
     self.remove = false
+    self.scored = false
 end
 
 function PipePair:update(dt)

@@ -10,6 +10,8 @@ require 'states/BaseState'
 require 'states/PlayState'
 require 'states/TitleScreenState'
 require 'states/PauseState'
+require 'states/ScoreState'
+require 'states/CountState'
 
 -- set resolution
 WINDOW_WIDTH, WINDOW_HEIGHT = love.window.getDesktopDimensions()
@@ -27,6 +29,16 @@ local ground = love.graphics.newImage('ground.png')
 local GROUND_SCROLL_SPEED = 60
 local groundPosition = 0
 math.randomseed(os.time()) -- set random seed globally
+
+sounds = {
+    ['jump'] = love.audio.newSource('jump.wav', 'static'),
+    ['hurt'] = love.audio.newSource('hurt.wav', 'static'),
+    ['explosion'] = love.audio.newSource('explosion.wav', 'static'),
+    ['score'] = love.audio.newSource('score.wav', 'static'),
+    ['music'] = love.audio.newSource('marios_way.mp3', 'static'),
+}
+sounds['music']:setLooping(true)
+sounds['music']:play()
 
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -50,6 +62,8 @@ function love.load()
         ['title'] = function() return TitleScreenState() end,
         ['play'] = function() return PlayState() end,
         ['pause'] = function() return PauseState() end,
+        ['score'] = function() return ScoreState() end,
+        ['count'] = function() return CountState() end,
     })
     gStateMachine:change('title')
 
@@ -67,8 +81,10 @@ function love.keyboard.wasKeyPressed(key)
 end
 
 function love.update(dt)
-    backgroundPosition = (backgroundPosition + BACKGROUND_SCROLL_SPEED * dt ) % BACKGROUND_LOOPING_POINT
-    groundPosition = (groundPosition + GROUND_SCROLL_SPEED * dt) % GAME_WIDTH
+    if gStateMachine.current.stateName ~= 'pause' and gStateMachine.current.stateName ~= 'count' then
+        backgroundPosition = (backgroundPosition + BACKGROUND_SCROLL_SPEED * dt ) % BACKGROUND_LOOPING_POINT
+        groundPosition = (groundPosition + GROUND_SCROLL_SPEED * dt) % GAME_WIDTH
+    end
     gStateMachine:update(dt)
     
     love.keyboard.keysPressed = {} -- update the input table to empty at this frame

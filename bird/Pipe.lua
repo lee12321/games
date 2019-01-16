@@ -29,6 +29,7 @@ end
 function Pipe:collides(bird)
     if bird.x + bird.width - 2 >= self.x and bird.x <= self.x + self.width + 2 then
         if bird.y + bird.height - 5 >= self.y and bird.y - 5 <= self.y + PIPE_HEIGHT then
+            sounds['hurt']:play()
             return true
         end
         return false
