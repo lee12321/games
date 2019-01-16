@@ -3,6 +3,14 @@ Class = require 'class' -- class lib
 require 'Bird'  -- bird class
 require 'Pipe'  -- pip class
 require 'PipePair' -- pipepair class
+
+-- load state machines
+require 'StateMachine'
+require 'states/BaseState'
+require 'states/PlayState'
+require 'states/TitleScreenState'
+require 'states/PauseState'
+
 -- set resolution
 WINDOW_WIDTH, WINDOW_HEIGHT = love.window.getDesktopDimensions()
 WINDOW_WIDTH, WINDOW_HEIGHT = WINDOW_WIDTH* 0.7, WINDOW_HEIGHT* 0.7
@@ -18,15 +26,7 @@ local backgroundPosition = 0 -- backgroud image x-axis
 local ground = love.graphics.newImage('ground.png')
 local GROUND_SCROLL_SPEED = 60
 local groundPosition = 0
-
-local bird = Bird()
-local pipePairs = {}
-
-local pipeTimer = 0
-
 math.randomseed(os.time()) -- set random seed globally
-
-local lastPipeY = -PIPE_HEIGHT + math.random(80) + 20 -- y-axis of the top pipe
 
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -37,7 +37,24 @@ function love.load()
         fullscreen = false,
         resizable = true
     })
+
+    -- import font
+    smallFont = love.graphics.newFont('font.ttf', 8)
+    mediumFont = love.graphics.newFont('flappy.ttf', 14)
+    largeFont = love.graphics.newFont('flappy.ttf', 28)
+    hugeFont = love.graphics.newFont('flappy.ttf', 56)
+    love.graphics.setFont(largeFont)
+
+    -- initialize statemachine
+    gStateMachine = StateMachine({
+        ['title'] = function() return TitleScreenState() end,
+        ['play'] = function() return PlayState() end,
+        ['pause'] = function() return PauseState() end,
+    })
+    gStateMachine:change('title')
+
     love.keyboard.keysPressed = {} -- a input table to store the keys pressed this frame
+
 end
 
 function love.resize(w, h)
@@ -52,31 +69,8 @@ end
 function love.update(dt)
     backgroundPosition = (backgroundPosition + BACKGROUND_SCROLL_SPEED * dt ) % BACKGROUND_LOOPING_POINT
     groundPosition = (groundPosition + GROUND_SCROLL_SPEED * dt) % GAME_WIDTH
-
-    pipeTimer = pipeTimer + dt
-
-    if pipeTimer > 2 then
-        y = math.max(-PIPE_HEIGHT + 20, -- not higher than this position
-                math.min( --get higher one 
-                lastPipeY + math.random(-20, 20), -- last pipe position +- 20
-                GAME_HEIGHT - GAP_HEIGHT - PIPE_HEIGHT -- lowest position
-                )
-            )
-        lastPipeY = y
-        table.insert(pipePairs, PipePair(y))
-        pipeTimer = 0
-    end
-
-    bird:update(dt) -- update bird position, apply gravity and jump
-
-    -- update pipe
-    for k, pipePair in pairs(pipePairs) do
-        pipePair:update(dt)
-        -- if pipe.x < -pipe.width:
-        --     table.remove(pipes, k)
-        -- end
-    end
-
+    gStateMachine:update(dt)
+    
     love.keyboard.keysPressed = {} -- update the input table to empty at this frame
 end
 
@@ -86,6 +80,7 @@ function love.keypressed(key)
     if key == 'escape' then
         love.event.quit()
     end
+
 end
 
 function love.draw()
@@ -98,9 +93,6 @@ function love.draw()
     --     0, -- rotation
     --     1, -- x scale
     --     1) -- y scale)
-    bird:render()
-    for k, pipePair in pairs(pipePairs) do
-        pipePair:render()
-    end
+    gStateMachine:render()
     push:finish()
 end

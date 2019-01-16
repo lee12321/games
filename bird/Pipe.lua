@@ -25,3 +25,12 @@ end
 function Pipe:update(dt)
     self.x = self.x + PIPE_SCROLL_SPEED * dt
 end
+
+function Pipe:collides(bird)
+    if bird.x + bird.width - 2 >= self.x and bird.x <= self.x + self.width + 2 then
+        if bird.y + bird.height - 5 >= self.y and bird.y - 5 <= self.y + PIPE_HEIGHT then
+            return true
+        end
+        return false
+    end
+end

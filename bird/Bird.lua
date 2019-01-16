@@ -27,3 +27,10 @@ function Bird:update(dt)
 
     self.y = self.y + self.dy
 end
+
+function Bird:collides()
+    if self.y <= 0 or self.y + self.width -5 >= GAME_HEIGHT then
+        return true
+    end
+    return false
+end
