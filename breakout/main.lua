@@ -52,7 +52,8 @@ function love.load()
     gFrames = {
         ['paddles'] = GenerateQuadsPaddles(gTextures['main']),
         ['balls'] = GenerateQuadsBalls(gTextures['main']),
-        ['bricks'] = GenerateQuadsBricks(gTextures['main'])
+        ['bricks'] = GenerateQuadsBricks(gTextures['main']),
+        ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9),
     }
 
     gStateMachine:change('start')
@@ -91,4 +92,29 @@ end
 
 function love.keypressed(key)
     love.keyboard.keysPressed[key] = true
+end
+
+-- global function to render hearts
+
+function RenderHearts(health)
+
+    local x = GAME_WIDTH - 100
+    local y = 3
+
+    for i = 1, health do
+        love.graphics.draw(gTextures['hearts'], gFrames['hearts'][1], x, y)
+        x = x + 10
+    end
+    
+    for i = 1, 3 - health do
+        love.graphics.draw(gTextures['hearts'], gFrames['hearts'][2], x, y)
+        x = x + 10
+    end
+end
+
+function RenderScore(score)
+    local x = GAME_WIDTH - 70
+    
+    love.graphics.setFont(gFonts['small'])
+    love.graphics.printf('score: ' .. tostring(score), x, 3, 50)
 end

@@ -8,6 +8,8 @@ function PlayState:enter(params)
     self.paddle = params['paddle']
     self.ball = params['ball']
     self.map = params['map']
+    self.health = params['health']
+    self.score = params['score']
 end
 
 function PlayState:render()
@@ -19,6 +21,8 @@ function PlayState:render()
     for k, brick in pairs(self.map) do
         brick:render()
     end
+    RenderHearts(self.health)
+    RenderScore(self.score)
 end
 
 function PlayState:update(dt)
@@ -34,8 +38,10 @@ function PlayState:update(dt)
             self.paused = true
             gSounds['music']:stop()
         end
+
         self.paddle:update(dt)
         self.ball:update(dt)
+
         if self.ball:collides(self.paddle) then
             self.ball.dy = -self.ball.dy
             self.ball.y = self.ball.y - 3
@@ -49,9 +55,11 @@ function PlayState:update(dt)
             --     self.ball.dx = -50 + -(5 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
             end
         end
+
         for k, brick in pairs(self.map) do
             if brick.inPlay and self.ball:collides(brick) then
                 brick:hit()
+                self.score = self.score + brick.tier * 10
                 -- check to see which side of the brick is hit
                 if self.ball.x + 2 < brick.x and self.ball.dx > 0 then
                     -- left
@@ -71,6 +79,23 @@ function PlayState:update(dt)
                 end
                 self.ball.dy = self.ball.dy * 1.02
                 break
+            end
+        end
+        -- if the ball falls out of the screen, decrease health
+        if self.ball.y >= GAME_HEIGHT then
+            self.health = self.health - 1
+            if self.health == 0 then
+                gStateMachine:change('game-over', {
+                    score = self.score
+                })
+            else
+                gStateMachine:change('serve', {
+                    paddle = self.paddle, 
+                    ball = self.ball,
+                    map = self.map, 
+                    health = self.health,
+                    score = self.score,
+                })
             end
         end
     end

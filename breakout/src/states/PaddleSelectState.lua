@@ -18,7 +18,13 @@ function PaddleSelectState:update()
         gSounds['paddle-hit']:play()
     elseif love.keyboard.wasKeyPressed('return') then
         gSounds['select']:play()
-        gStateMachine:change('serve', self.current)
+        gStateMachine:change('serve', {
+            paddle = Paddle(self.current),
+            ball = Ball(1),
+            map = LevelMaker.createMap(),
+            score = 0,
+            health = 3,
+        })
     end
 end
 
