@@ -1,0 +1,5 @@
+-- set resolution
+WINDOW_WIDTH, WINDOW_HEIGHT = love.window.getDesktopDimensions()
+WINDOW_WIDTH, WINDOW_HEIGHT = WINDOW_WIDTH* 0.7, WINDOW_HEIGHT* 0.7
+
+GAME_WIDTH, GAME_HEIGHT = 432, 243
