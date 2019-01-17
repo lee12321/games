@@ -1,6 +1,7 @@
 require 'src/Dependencies'
 
 function love.load()
+    math.randomseed(os.time())
     love.graphics.setDefaultFilter('nearest', 'nearest')
     love.window.setTitle('breakout')
     push:setupScreen(GAME_WIDTH, GAME_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
@@ -43,8 +44,20 @@ function love.load()
 
     gStateMachine = StateMachine({
         ['start'] = function() return StartState() end,
+        ['paddleSelect'] = function() return PaddleSelectState() end,
+        ['play'] = function() return PlayState() end,
+        ['serve'] = function() return ServeState() end,
     })
 
+    gFrames = {
+        ['paddles'] = GenerateQuadsPaddles(gTextures['main']),
+        ['balls'] = GenerateQuadsBalls(gTextures['main']),
+        ['bricks'] = GenerateQuadsBricks(gTextures['main'])
+    }
+
+    gStateMachine:change('start')
+    gSounds['music']:play()
+    love.keyboard.keysPressed = {}
 end
 
 function love.resize(w, h)
@@ -74,4 +87,8 @@ function love.draw()
     )
     gStateMachine:render()
     push:apply('end')
+end
+
+function love.keypressed(key)
+    love.keyboard.keysPressed[key] = true
 end
