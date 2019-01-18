@@ -8,6 +8,7 @@ function Ball:init(skin)
     self.dx = 0
     self.dy = 0
     self.skin = skin
+    self.inPlay = true
 end
 
 function Ball:update(dt)

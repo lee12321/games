@@ -2,6 +2,9 @@ StartState = Class{__includes = 'BaseState'}
 
 local highlighted = 1
 
+function StartState:enter(params)
+end
+
 function StartState:update(dt)
     if love.keyboard.wasKeyPressed('up') or love.keyboard.wasKeyPressed('down') then
         highlighted = highlighted == 1 and 2 or 1
@@ -16,6 +19,8 @@ function StartState:update(dt)
         gSounds['select']:play()
         if highlighted == 1 then
             gStateMachine:change('paddleSelect')
+        else
+            gStateMachine:change('highScore', {highScores = self.highScores})
         end
     end
 end

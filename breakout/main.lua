@@ -47,6 +47,9 @@ function love.load()
         ['paddleSelect'] = function() return PaddleSelectState() end,
         ['play'] = function() return PlayState() end,
         ['serve'] = function() return ServeState() end,
+        ['gameOver'] = function() return GameOverState() end,
+        ['highScore'] = function() return HighScoreState() end,
+        ['enterHighScore'] = function() return EnterHighScoreState() end,
     })
 
     gFrames = {
@@ -54,9 +57,10 @@ function love.load()
         ['balls'] = GenerateQuadsBalls(gTextures['main']),
         ['bricks'] = GenerateQuadsBricks(gTextures['main']),
         ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9),
+        ['powerUps'] = GenerateQuadsPowerUps(gTextures['main'])
     }
 
-    gStateMachine:change('start')
+    gStateMachine:change('start', {highScores = LoadHighScores()})
     gSounds['music']:play()
     love.keyboard.keysPressed = {}
 end
@@ -92,6 +96,9 @@ end
 
 function love.keypressed(key)
     love.keyboard.keysPressed[key] = true
+    if key == "rctrl" then --set to whatever key you want to use
+        debug.debug()
+     end
 end
 
 -- global function to render hearts
@@ -117,4 +124,40 @@ function RenderScore(score)
     
     love.graphics.setFont(gFonts['small'])
     love.graphics.printf('score: ' .. tostring(score), x, 3, 50)
+end
+
+function LoadHighScores()
+    love.filesystem.setIdentity('breakout')
+
+    if not love.filesystem.getInfo('breakout.lst') then
+        local scores = ''
+        for i = 10 , 1, -1 do
+            scores = scores .. 'CT0\n'
+            scores = scores .. tostring(i * 1000) .. '\n'
+        end
+        love.filesystem.write('breakout.lst' ,scores)
+    end
+
+    local scores = {}
+    local counter = 1
+    local nameFlag = true
+
+    for j = 1, 10 do
+        scores[j] = {
+            name = nil,
+            score = nil
+        }
+    end
+
+    for line in love.filesystem.lines('breakout.lst') do
+        if nameFlag then
+            scores[counter].name = string.sub(line, 1, 3)
+        else
+            scores[counter].score = tonumber(line)
+            counter = counter + 1
+        end
+        nameFlag = not nameFlag
+    end
+    assert(scores[10])
+    return scores
 end

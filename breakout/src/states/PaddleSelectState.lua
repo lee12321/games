@@ -20,10 +20,11 @@ function PaddleSelectState:update()
         gSounds['select']:play()
         gStateMachine:change('serve', {
             paddle = Paddle(self.current),
-            ball = Ball(1),
-            map = LevelMaker.createMap(),
+            ball = Ball(math.random(7)),
+            map = LevelMaker.createMap(1),
             score = 0,
             health = 3,
+            level = 1,
         })
     end
 end

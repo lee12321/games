@@ -68,6 +68,10 @@ function GenerateQuadsBricks(atlas)
     return table.slice(GenerateQuads(atlas, 32, 16), 1, 21, 1)
 end
 
+function GenerateQuadsPowerUps(atlas)
+    return table.slice(GenerateQuads(atlas, 16, 16), 12 * 12 + 1, 12 * 12 + 11)
+end
+
 function GenerateQuadsBalls(atlas)
     local x = 96
     local y = 48

@@ -6,6 +6,7 @@ function ServeState:enter(params)
     self.map = params['map']
     self.score = params['score']
     self.health = params['health']
+    self.level = params['level']
 end
 
 function ServeState:render()
@@ -20,7 +21,8 @@ function ServeState:render()
     RenderScore(self.score)
 end
 
-function ServeState:update()
+function ServeState:update(dt)
+    self.paddle:update(dt)
     self.ball.x = self.paddle.x + self.paddle.width / 2 - 4
     self.ball.y = self.paddle.y - 9
     if love.keyboard.wasKeyPressed('space') then
@@ -33,6 +35,7 @@ function ServeState:update()
             ['map'] = self.map,
             ['score'] = self.score,
             ['health'] = self.health,
+            ['level'] = self.level
         }
         gStateMachine:change('play', params)
     end

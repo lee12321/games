@@ -2,6 +2,7 @@ PlayState = Class{__includes = 'BaseState'}
 
 function PlayState:init()
     self.paused = false
+    self.win = false
 end
 
 function PlayState:enter(params)
@@ -10,6 +11,12 @@ function PlayState:enter(params)
     self.map = params['map']
     self.health = params['health']
     self.score = params['score']
+    self.level = params['level']
+    self.balls = {}
+    self.powerUps = {}
+    self.powerUpTimer = 0
+    self.newBallAmount = 2
+    table.insert(self.balls, self.ball)
 end
 
 function PlayState:render()
@@ -17,9 +24,22 @@ function PlayState:render()
         love.graphics.printf("PAUSED", 0 , GAME_HEIGHT / 3 , GAME_WIDTH, 'center')
     end
     self.paddle:render()
-    self.ball:render()
+    for i, ball in pairs(self.balls) do
+        if ball.inPlay then
+            ball:render()
+        end
+    end
     for k, brick in pairs(self.map) do
         brick:render()
+    end
+    for k, brick in pairs(self.map) do
+        brick:renderParticles()
+    end
+    -- render powerUps
+    for i, powerUp in pairs(self.powerUps) do
+        if powerUp.inPlay then
+            powerUp:render()
+        end
     end
     RenderHearts(self.health)
     RenderScore(self.score)
@@ -38,63 +58,136 @@ function PlayState:update(dt)
             self.paused = true
             gSounds['music']:stop()
         end
-
+        -- update paddle
         self.paddle:update(dt)
-        self.ball:update(dt)
-
-        if self.ball:collides(self.paddle) then
-            self.ball.dy = -self.ball.dy
-            self.ball.y = self.ball.y - 3
-            if self.ball.x < self.paddle.x + self.paddle.width / 2 and self.ball.dx < 0 then
-                self.ball.dx = -50 + -(5 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
-            elseif self.ball.x > self.paddle.x + self.paddle.width / 2 and self.ball.dx > 0 then
-                self.ball.dx = 50 + math.abs(5 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
-            -- elseif self.ball.x < self.paddle.x + self.paddle.width / 2 and self.ball.dx > 0 then
-            --     self.ball.dx = 50 + -(5 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
-            -- elseif self.ball.x > self.paddle.x + self.paddle.width / 2 and self.ball.dx < 0 then
-            --     self.ball.dx = -50 + -(5 * (self.paddle.x + self.paddle.width / 2 - self.ball.x))
+        -- update all balls
+        for i, ball in pairs(self.balls) do
+            if ball.inPlay then
+                ball:update(dt)
             end
         end
+        -- detect powerUp collision
+        for i, powerUp in pairs(self.powerUps) do
+            if powerUp.inPlay then
+                powerUp:update(dt)
+            end
+            if powerUp:collides(self.paddle) then
+                if powerUp.type == 9 then
+                    powerUp.inPlay = false
+                    for i = 1, self.newBallAmount do
+                        local new = Ball(math.random(7))
+                        new.x = self.paddle.x
+                        new.y = self.paddle.y - 9
+                        new.dx = math.random(-100, 100)
+                        new.dy = math.random(-90, -110)
+                        table.insert(self.balls, new)
+                    end
+                end
+            end
+            if powerUp.y > GAME_HEIGHT then
+                powerUp.inPlay = false
+            end
+        end
+        -- detect balls collision with paddle
+        for i, ball in pairs(self.balls) do    
+            if ball.inPlay and ball:collides(self.paddle) then
+                ball.dy = -ball.dy
+                ball.y = ball.y - 3
+                if ball.x < self.paddle.x + self.paddle.width / 2 and ball.dx < 0 then
+                    ball.dx = -50 + -(5 * (self.paddle.x + self.paddle.width / 2 - ball.x))
+                elseif ball.x > self.paddle.x + self.paddle.width / 2 and ball.dx > 0 then
+                    ball.dx = 50 + math.abs(5 * (self.paddle.x + self.paddle.width / 2 - ball.x))
+                elseif ball.x < self.paddle.x + self.paddle.width / 2 and ball.dx > 0 then
+                    ball.dx = 50 + -(5 * (self.paddle.x + self.paddle.width / 2 - ball.x))
+                elseif ball.x > self.paddle.x + self.paddle.width / 2 and ball.dx < 0 then
+                    ball.dx = -50 + -(5 * (self.paddle.x + self.paddle.width / 2 - ball.x))
+                end
+            end
+        end
+
+        self.win = true -- asume win
 
         for k, brick in pairs(self.map) do
-            if brick.inPlay and self.ball:collides(brick) then
-                brick:hit()
-                self.score = self.score + brick.tier * 10
-                -- check to see which side of the brick is hit
-                if self.ball.x + 2 < brick.x and self.ball.dx > 0 then
-                    -- left
-                    self.ball.dx = - self.ball.dx
-                    self.ball.x = brick.x - 8
-                elseif  self.ball.x + 6 > brick.x + brick.width and self.ball.dx < 0 then
-                    -- right
-                    self.ball.dx = - self.ball.dx
-                    self.ball.x = brick.x + brick.width 
-                elseif  self.ball.y < brick.y then
-                    -- top
-                    self.ball.dy = - self.ball.dy
-                    self.ball.y = brick.y - 8
-                else
-                    self.ball.dy = - self.ball.dy
-                    self.ball.y = brick.y + brick.height 
+            brick:update(dt) --update particle system
+            if brick.inPlay then
+                -- if brick still in play, set the win to false
+                self.win = false
+            
+                -- brick collision detect
+                for i, ball in pairs(self.balls) do
+                    if ball.inPlay and ball:collides(brick) then
+                        -- scores based on brick tier
+                        self.score = self.score + (brick.tier + 1 ) * 10
+                        brick:hit()
+                        -- increase power up timer
+                        self.powerUpTimer = self.powerUpTimer + 1
+                        if self.powerUpTimer == 3 then -- create power up
+                            table.insert(self.powerUps, PowerUp(9))
+                        end
+                        -- check to see which side of the brick is hit
+                        if ball.x + 2 < brick.x and ball.dx > 0 then
+                            -- left
+                            ball.dx = - ball.dx
+                            ball.x = brick.x - 8
+                        elseif  ball.x + 6 > brick.x + brick.width and ball.dx < 0 then
+                            -- right
+                            ball.dx = - ball.dx
+                            ball.x = brick.x + brick.width 
+                        elseif  ball.y < brick.y then
+                            -- top
+                            ball.dy = - ball.dy
+                            ball.y = brick.y - 8
+                        else
+                            ball.dy = - ball.dy
+                            ball.y = brick.y + brick.height 
+                        end
+                        ball.dy = ball.dy * 1.02
+                        break
+                    end
                 end
-                self.ball.dy = self.ball.dy * 1.02
-                break
             end
         end
-        -- if the ball falls out of the screen, decrease health
-        if self.ball.y >= GAME_HEIGHT then
+        
+        if self.win then
+            -- if wins, go to next level
+            gStateMachine:change('serve',
+            {
+                paddle = self.paddle,
+                ball = Ball(math.random(7)),
+                map = LevelMaker.createMap(self.level + 1),
+                score = self.score,
+                health = self.health,
+                level = self.level + 1,
+            }
+            )
+        end
+        local lose = true -- asume lose
+        -- if all the ball falls out of the screen, decrease health
+        for i, ball in pairs(self.balls) do
+            if ball.inPlay then
+                lose = false
+            end
+            if ball.y >= GAME_HEIGHT then
+                ball.inPlay = false
+            end
+        end
+
+        if lose then
             self.health = self.health - 1
             if self.health == 0 then
-                gStateMachine:change('game-over', {
+                -- game over
+                gStateMachine:change('gameOver', {
                     score = self.score
                 })
             else
+                self.ball.inPlay = true
                 gStateMachine:change('serve', {
                     paddle = self.paddle, 
                     ball = self.ball,
                     map = self.map, 
                     health = self.health,
                     score = self.score,
+                    level = self.level
                 })
             end
         end
