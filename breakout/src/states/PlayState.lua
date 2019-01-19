@@ -138,6 +138,7 @@ function PlayState:update(dt)
                             table.insert(self.powerUps, PowerUp(9))
                         elseif self.hits % self.powerUpTimer[10] == self.powerUpTimer[10] - 1 and LockedBrickExists then
                             -- if there is locked brick, generate key after certain hits untill no lock exists
+                            print('key add')
                             table.insert(self.powerUps, PowerUp(10))
                         end
                         -- check to see which side of the brick is hit
