@@ -12,7 +12,7 @@ end
 function ServeState:render()
     love.graphics.setFont(gFonts['medium'])
     love.graphics.printf("Press space to serve", 0 , GAME_HEIGHT / 2 , GAME_WIDTH, 'center')
-    self.paddle:render()
+    self.paddle:render(self.health)
     self.ball:render()
     for k, brick in pairs(self.map) do
         brick:render()
@@ -22,7 +22,7 @@ function ServeState:render()
 end
 
 function ServeState:update(dt)
-    self.paddle:update(dt)
+    self.paddle:update(dt, self.health)
     self.ball.x = self.paddle.x + self.paddle.width / 2 - 4
     self.ball.y = self.paddle.y - 9
     if love.keyboard.wasKeyPressed('space') then

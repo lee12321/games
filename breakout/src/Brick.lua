@@ -43,6 +43,7 @@ function Brick:init(x, y)
     self.tier = 0
 
     self.inPlay = true
+    self.lock = false
 
     -- https://love2d.org/wiki/ParticleSystem
     self.pSys = love.graphics.newParticleSystem(gTextures['particle'], 64)
@@ -54,9 +55,15 @@ end
 
 function Brick:render()
     if self.inPlay then
-        love.graphics.draw(gTextures['main'], 
-            gFrames['bricks'][1 + (self.skin - 1) * 4 + self.tier], 
+        if self.lock then
+            love.graphics.draw(gTextures['main'], 
+            gFrames['lockBrick'][1], 
             self.x, self.y)
+        else
+            love.graphics.draw(gTextures['main'], 
+                gFrames['bricks'][1 + (self.skin - 1) * 4 + self.tier], 
+                self.x, self.y)
+        end
     end
 end
 
@@ -65,24 +72,28 @@ function Brick:renderParticles()
 end
 
 function Brick:hit()
-    self.pSys:setColors(
-        paletteColors[self.skin].r,
-        paletteColors[self.skin].g,
-        paletteColors[self.skin].b,
-        55 * (self.tier + 1)/ 255,
-        paletteColors[self.skin].r,
-        paletteColors[self.skin].g,
-        paletteColors[self.skin].b,
-        0
-    )
-    self.pSys:emit(64)
+    if not self.lock then
+        self.pSys:setColors(
+            paletteColors[self.skin].r,
+            paletteColors[self.skin].g,
+            paletteColors[self.skin].b,
+            55 * (self.tier + 1)/ 255,
+            paletteColors[self.skin].r,
+            paletteColors[self.skin].g,
+            paletteColors[self.skin].b,
+            0
+        )
+        self.pSys:emit(64)
 
-    if self.tier == 0 then
-        self.inPlay = false
-        gSounds['brick-hit-1']:play()
+        if self.tier == 0 then
+            self.inPlay = false
+            gSounds['brick-hit-1']:play()
+        else
+            self.tier = self.tier - 1
+            gSounds['brick-hit-2']:play()
+        end
     else
-        self.tier = self.tier - 1
-        gSounds['brick-hit-2']:play()
+        gSounds['brick-hit-1']:play()
     end
 end
 

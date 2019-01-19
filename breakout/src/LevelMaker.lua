@@ -1,5 +1,5 @@
 LevelMaker = Class{}
-
+LockedBrickExists = false
 
 -- render patterns
 local SKIP = 1
@@ -7,7 +7,9 @@ local SOLID = 2
 local ALTERNATE = 3
 local None = 4
 
+
 function LevelMaker.createMap(level)
+    LockedBrickExists = false
     -- Generate cols and rows based on level
     level = level > 5 and 5 or level
     local Rows = math.random(level, 1 + level)
@@ -24,7 +26,8 @@ function LevelMaker.createMap(level)
 
     local solidColor = math.random(1, highestColor)
     local solidTier = math.random(1, highestTier)
-
+    local hasLock = math.random(1, 2) == 1 and true or false
+    local lockAmount = math.random(1, 3)
     -- Add all bricks to a table and return
     local bricks = {}
     for y = 1, Rows do
@@ -33,7 +36,7 @@ function LevelMaker.createMap(level)
         local skipFlag = math.random(1, 2) == 1 and true or false
         local altPattern = math.random(1, 2) == 1 and true or false
         local altFlag = math.random(1, 2) == 1 and true or false
-        
+
         for x = 1, Cols do  -- generate loop
             -- do skipping
             if skipPattern and skipFlag then
@@ -66,6 +69,13 @@ function LevelMaker.createMap(level)
             end
         ::continue::
         end
+    end
+    -- add lock
+    if #bricks >= 3 and hasLock then
+        for i = 1, lockAmount do
+            bricks[math.random(#bricks)].lock = true
+        end
+        LockedBrickExists = true
     end
     -- if no bricks generated, redo it
     if #bricks == 0 then

@@ -57,7 +57,8 @@ function love.load()
         ['balls'] = GenerateQuadsBalls(gTextures['main']),
         ['bricks'] = GenerateQuadsBricks(gTextures['main']),
         ['hearts'] = GenerateQuads(gTextures['hearts'], 10, 9),
-        ['powerUps'] = GenerateQuadsPowerUps(gTextures['main'])
+        ['powerUps'] = GenerateQuadsPowerUps(gTextures['main']),
+        ['lockBrick'] = table.slice(GenerateQuads(gTextures['main'], 32, 16), 24, 24, 1)
     }
 
     gStateMachine:change('start', {highScores = LoadHighScores()})

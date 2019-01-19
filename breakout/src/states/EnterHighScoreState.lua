@@ -41,6 +41,7 @@ function EnterHighScoreState:update(dt)
     end
 
     -- caculate rank
+    local rank = 0
     if love.keyboard.wasKeyPressed('return') then
         local name = string.char(self.chars[1]) .. string.char(self.chars[2]) .. string.char(self.chars[3])
 
@@ -50,11 +51,12 @@ function EnterHighScoreState:update(dt)
                     self.highScores[j].score = self.highScores[j - 1].score
                     self.highScores[j].name = self.highScores[j - 1].name
                 end
-                self.highScores[i].score = self.score
-                self.highScores[i].name = name
             -- else
             --     self.highScores[i].score = self.score
             --     self.highScores[i].name = name
+                self.highScores[i].score = self.score
+                self.highScores[i].name = name
+                break
             end
         end
         

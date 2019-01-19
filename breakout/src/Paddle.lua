@@ -10,15 +10,20 @@ function Paddle:init(skin)
 
     self.skin = skin
 
-    self.size = 2
+    self.size = 3
 end
 
-function Paddle:render()
-    love.graphics.draw(gTextures['main'], gFrames['paddles'][self.size + 4 * (self.skin - 1)],
+function Paddle:render(health)
+    if health ~= nil and 3 >= health and health > 0 then
+        love.graphics.draw(gTextures['main'], gFrames['paddles'][health + 4 * (self.skin - 1)],
+            self.x, self.y)
+    else
+        love.graphics.draw(gTextures['main'], gFrames['paddles'][self.size + 4 * (self.skin - 1)],
         self.x, self.y)
+    end
 end
 
-function Paddle:update(dt)
+function Paddle:update(dt, health)
     if love.keyboard.isDown('left') then
         self.dx = -PADDLE_SPEED
     elseif love.keyboard.isDown('right') then
@@ -26,9 +31,12 @@ function Paddle:update(dt)
     else
         self.dx = 0
     end
+
     if self.dx < 0 then
         self.x = math.max(0, self.x + self.dx * dt)
     else
         self.x = math.min(GAME_WIDTH - self.width, self.x + self.dx * dt)
     end
+
+    self.width = self.height * 2 * health 
 end
