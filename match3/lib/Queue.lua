@@ -7,17 +7,15 @@ function Queue:init()
 end
 
 function Queue:push(value)
-    local last = self.last + 1
-    self.last = last
-    self.content[last] = value
+    self.last = self.last + 1
+    self.content[self.last] = value
 end
 
 function Queue:pop()
-    first = self.first
     if self.first > self.last then
         return nil
     end
-    local value = self.content[first]
-    self.first = first + 1
+    local value = self.content[self.first]
+    self.first = self.first + 1
     return value
 end
