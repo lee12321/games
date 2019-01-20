@@ -35,17 +35,18 @@ function PlayState:update(dt)
                 self.canInput = false
                 print('swapping tiles, cant input now') -- DEBUG
                 local temp = self.board.tiles[self.boardCursorY][self.boardCursorX]
-                swapTweens = self.highlightedTile:swap(self.board.tiles[self.boardCursorY][self.boardCursorX])
-                Timer.tween(0.5, swapTweens):finish(function()
-                    self.board.tiles[self.boardCursorY][self.boardCursorX] = self.highlightedTile
-                    self.board.tiles[temp.GridY][temp.GridX] = temp
-                    self.highlightedTile = nil
-                    self:calculateMatches()
-                    print('calculation finished')
-                    self.canInput = true
-                    print('can input now')
-                    end)
-                 -- debug
+                local swapTweens = self.highlightedTile:swap(self.board.tiles[self.boardCursorY][self.boardCursorX])
+                Timer.tween(0.5, swapTweens):finish(
+                    function()
+                        print('start caculation')
+                        self.board.tiles[self.boardCursorY][self.boardCursorX] = self.highlightedTile
+                        self.board.tiles[temp.GridY][temp.GridX] = temp
+                        self.highlightedTile = nil
+                        self:calculateMatches()
+                        print('calculation finished')
+                    end
+                )
+
             end
         end
     end
@@ -98,5 +99,8 @@ function PlayState:calculateMatches()
         Timer.tween(0.5, fallTweens):finish(function()
             self:calculateMatches()
         end)
+    else
+        self.canInput = true
+        print('can input now') -- debug
     end
 end
